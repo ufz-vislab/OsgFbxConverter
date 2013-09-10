@@ -24,4 +24,6 @@ USE_OPENSG(OsgFbxConverter)
 
 ADD_EXECUTABLE(osg2fbx main.cxx)
 
+USE_OPENSG(osg2fbx)
+
 TARGET_LINK_LIBRARIES (osg2fbx OsgFbxConverter ${FBX_LIBRARIES})

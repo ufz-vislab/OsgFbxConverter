@@ -62,8 +62,10 @@ std::string getFileExtension(const std::string &path)
 // No arguments: batch convert all vt* files
 // switch argument: batch convert all vt* files into one osb file with a switch
 // file argument: convert only the specified file
-int main (int argc, char const* argv[])
+int main (int argc, char **argv)
 {
+    OSG::osgInit(argc,argv);
+
     // Init fbx
     FbxManager* lSdkManager = NULL;
     FbxScene* lScene = NULL;
@@ -82,18 +84,25 @@ int main (int argc, char const* argv[])
     {
         string filename(*it);
         OSG::NodePtr node = OSG::SceneFileHandler::the().read(filename.c_str());
+        if (node == OSG::NullFC)
+        {
+            std::cout
+                << "It was not possible to load all needed models from file"
+                << std::endl;
+            continue;
+        }
 
         OsgFbxConverter* converter = new OsgFbxConverter(node, lScene);
         converter->convert();
 
         // Save the scene.
-        string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
-        filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
-        cout << "Saving to " << filename << " ..." << endl;
+        // string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
+        // filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
+        // cout << "Saving to " << filename << " ..." << endl;
 
-        // Use the binary format with embedded media.
-        int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
-        lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
+        // // Use the binary format with embedded media.
+        // int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
+        // lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
 
         delete converter;
     }
