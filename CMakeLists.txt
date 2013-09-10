@@ -17,8 +17,8 @@ INCLUDE_DIRECTORIES (
 ADD_LIBRARY(OsgFbxConverter
 	Common.h
 	Common.cxx
-	#OsgFbxConverter.h
-	#OsgFbxConverter.cxx
+	OsgFbxConverter.h
+	OsgFbxConverter.cxx
 )
 USE_OPENSG(OsgFbxConverter)
 
