@@ -1,0 +1,27 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
+
+IF(NOT WIN32)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-qualifiers -Wno-unused-parameter -Wno-missing-field-initializers")
+ENDIF()
+
+# Find
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+FIND_PACKAGE(FBX REQUIRED)
+FIND_PACKAGE(OpenSG COMPONENTS OSGBase OSGSystem REQUIRED)
+
+INCLUDE_DIRECTORIES (
+	.
+	${FBX_INCLUDE_DIRS}
+)
+
+ADD_LIBRARY(OsgFbxConverter
+	Common.h
+	Common.cxx
+	#OsgFbxConverter.h
+	#OsgFbxConverter.cxx
+)
+USE_OPENSG(OsgFbxConverter)
+
+ADD_EXECUTABLE(osg2fbx main.cxx)
+
+TARGET_LINK_LIBRARIES (osg2fbx OsgFbxConverter ${FBX_LIBRARIES})
