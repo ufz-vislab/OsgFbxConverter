@@ -38,9 +38,13 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		return Action::Continue;
 	else if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()))
 	{
-		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
+		string name("Geometry");
+		if(getName(node))
+			name = getName(node);
+		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
+		cout << "Creating geometry object: " << name << endl;
 
 		GeometryPtr geo = GeometryPtr::dcast(node->getCore());
 		GeoPTypesPtr osgTypes = geo->getTypes();
@@ -67,9 +71,6 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 			<< "\nVertices: " << numVertices << "\nNormals: " << numNormals << "\nColors: "
 			<< numColors << "\nTex coords: " << numTexCoords << endl;
 
-		string name("Geometry");
-		if(getName(node))
-			name = getName(node);
 		FbxMesh* mesh = FbxMesh::Create(_scene, name.c_str());
 
 		// -- Vertices --
@@ -167,7 +168,10 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		if(checkVredIgnoreNodes(node))
 			return Action::Skip;
 
-		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
+		string name("Group");
+		if(getName(node))
+			name = getName(node);
+		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
 	}
@@ -187,7 +191,7 @@ Action::ResultE OsgFbxConverter::onLeave(NodePtr& node, Action::ResultE result)
 			return Action::Quit;
 		}
 	}
-	if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()) ||
+	else if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()) ||
 		node->getCore()->getType().isDerivedFrom(Group::getClassType()))
 	{
 		if(checkVredIgnoreNodes(node))
@@ -219,7 +223,11 @@ bool OsgFbxConverter::createTransformNode(NodePtr node)
 		Vec3f translation, scaleFactor, center;
 		Quaternion quat, scaleOrientation;
 		mat.getTransform(translation, quat, scaleFactor, scaleOrientation, center);
-		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
+		string name("Transform");
+		if(getName(node))
+			name = getName(node);
+		cout << "Name: " << name << endl;
+		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
 		_currentTransformNode = newNode;
@@ -227,7 +235,7 @@ bool OsgFbxConverter::createTransformNode(NodePtr node)
 		// TODO Rotation
 		// _currentNode->LclRotation.Set(FbxDouble3(translation.x(), translation.y(), translation.z()));
 		_currentNode->LclScaling.Set(FbxDouble3(scaleFactor.x(), scaleFactor.y(), scaleFactor.z()));
-		cout << "Creating FbxNode with translation (" << translation.x() << ", " << translation.y()
+		cout << "Creating transform with translation (" << translation.x() << ", " << translation.y()
 			<< ", " << translation.z() << ") and scaling (" << scaleFactor.x() << ", "
 			<< scaleFactor.y() << ", " << scaleFactor.z() << ")" << endl;
 		return true;
