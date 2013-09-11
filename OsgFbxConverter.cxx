@@ -22,7 +22,7 @@ OSG_USING_NAMESPACE
 using namespace std;
 
 OsgFbxConverter::OsgFbxConverter(NodePtr node, FbxScene* scene)
-: _osgRoot(node), _scene(scene)
+: _osgRoot(node), _scene(scene), _currentNode(NULL)
 {
 
 }
@@ -49,10 +49,12 @@ Action::ResultE OsgFbxConverter::onLeave(NodePtr& node, Action::ResultE result)
 {
 	if (node->getCore()->getType().isDerivedFrom(Transform::getClassType()))
 	{
-		if (getName(node))
-			cout << "Found a geometry core stored in " << getName(node) << endl;
-		else
-			cout << "Found a geometry core but node has no name" << endl;
+		_currentNode = _currentNode->GetParent();
+		if(_currentNode == NULL)
+		{
+			cout << "Finished traversal." << endl;
+			return Action::Quit;
+		}
 	}
 
 	return Action::Continue;
@@ -60,7 +62,7 @@ Action::ResultE OsgFbxConverter::onLeave(NodePtr& node, Action::ResultE result)
 
 bool OsgFbxConverter::convert(std::string name)
 {
-	cout << "Converting ..." << endl;
+	cout << "\n### Converting ###" << endl;
 
 	traverse(_osgRoot,
 		osgTypedMethodFunctor1ObjPtrCPtrRef<Action::ResultE, OsgFbxConverter, NodePtr>
@@ -79,7 +81,10 @@ bool OsgFbxConverter::createTransformNode(OSG::NodePtr node)
 		Vec3f translation, scaleFactor, center;
 		Quaternion quat, scaleOrientation;
 		mat.getTransform(translation, quat, scaleFactor, scaleOrientation, center);
-		_currentNode = FbxNode::Create(_scene, getName(node));
+		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
+		if(_currentNode)
+			_currentNode->AddChild(newNode);
+		_currentNode = newNode;
 		_currentNode->LclTranslation.Set(FbxDouble3(translation.x(), translation.y(), translation.z()));
 		// TODO Rotation
 		// _currentNode->LclRotation.Set(FbxDouble3(translation.x(), translation.y(), translation.z()));
