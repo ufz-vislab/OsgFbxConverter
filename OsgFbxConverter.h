@@ -31,8 +31,12 @@ public:
 	void addUserProperty(const std::string name, const FBXSDK_NAMESPACE::FbxColor value);
 
 protected:
+	OSG::Action::ResultE onEntry(OSG::NodePtr& node);
+	OSG::Action::ResultE onLeave(OSG::NodePtr& node, OSG::Action::ResultE result);
+	FBXSDK_NAMESPACE::FbxNode* _currentNode;
 
 private:
+	bool createTransformNode(OSG::NodePtr node);
 
 	enum {NOT_GIVEN, PER_VERTEX, PER_CELL};
 
