@@ -34,6 +34,7 @@ protected:
 	OSG::Action::ResultE onEntry(OSG::NodePtr& node);
 	OSG::Action::ResultE onLeave(OSG::NodePtr& node, OSG::Action::ResultE result);
 	FBXSDK_NAMESPACE::FbxNode* _currentNode;
+	FBXSDK_NAMESPACE::FbxNode* _currentTransformNode;
 
 private:
 	bool createTransformNode(OSG::NodePtr node);

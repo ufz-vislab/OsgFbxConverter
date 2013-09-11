@@ -96,13 +96,13 @@ int main (int argc, char **argv)
         converter->convert();
 
         // Save the scene.
-        // string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
-        // filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
-        // cout << "Saving to " << filename << " ..." << endl;
+        string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
+        filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
+        cout << "Saving to " << filename << " ..." << endl;
 
-        // // Use the binary format with embedded media.
-        // int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
-        // lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
+        // Use the binary format with embedded media.
+        int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
+        lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
 
         delete converter;
     }
