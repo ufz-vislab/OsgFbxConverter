@@ -38,6 +38,7 @@ protected:
 
 private:
 	bool createTransformNode(OSG::NodePtr node);
+	bool checkVredIgnoreNodes(OSG::NodePtr node);
 
 	enum {NOT_GIVEN, PER_VERTEX, PER_CELL};
 

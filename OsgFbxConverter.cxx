@@ -34,8 +34,9 @@ OsgFbxConverter::~OsgFbxConverter()
 
 Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 {
-	createTransformNode(node);
-	if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()))
+	if(createTransformNode(node))
+		return Action::Continue;
+	else if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()))
 	{
 		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
 		_currentNode->AddChild(newNode);
@@ -161,6 +162,15 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		// pivot point in Unity
 		_currentNode->LclTranslation.Set(boundingBoxCenter);
 	}
+	else if (node->getCore()->getType().isDerivedFrom(Group::getClassType()))
+	{
+		if(checkVredIgnoreNodes(node))
+			return Action::Skip;
+
+		FbxNode* newNode = FbxNode::Create(_scene, getName(node));
+		_currentNode->AddChild(newNode);
+		_currentNode = newNode;
+	}
 
 	return Action::Continue;
 }
@@ -177,8 +187,13 @@ Action::ResultE OsgFbxConverter::onLeave(NodePtr& node, Action::ResultE result)
 			return Action::Quit;
 		}
 	}
-	if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()))
+	if (node->getCore()->getType().isDerivedFrom(Geometry::getClassType()) ||
+		node->getCore()->getType().isDerivedFrom(Group::getClassType()))
+	{
+		if(checkVredIgnoreNodes(node))
+			return Action::Skip;
 		_currentNode = _currentNode->GetParent();
+	}
 
 	return Action::Continue;
 }
@@ -195,7 +210,7 @@ bool OsgFbxConverter::convert(std::string name)
 	return true;
 }
 
-bool OsgFbxConverter::createTransformNode(OSG::NodePtr node)
+bool OsgFbxConverter::createTransformNode(NodePtr node)
 {
 	if (node->getCore()->getType().isDerivedFrom(Transform::getClassType()))
 	{
@@ -218,4 +233,17 @@ bool OsgFbxConverter::createTransformNode(OSG::NodePtr node)
 		return true;
 	}
 	return false;
+}
+
+bool OsgFbxConverter::checkVredIgnoreNodes(NodePtr node)
+{
+	string name("");
+	if(getName(node))
+		name = getName(node);
+	return node->getParent() == _osgRoot && (
+		name.find("VREDMaterialPool") != string::npos ||
+		name.find("Front") != string::npos ||
+		name.find("Perspective") != string::npos ||
+		name.find("Side") != string::npos ||
+		name.find("Top") != string::npos );
 }
