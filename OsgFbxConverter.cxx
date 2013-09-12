@@ -4,15 +4,16 @@
 #include <OpenSG/OSGGeoFunctions.h>
 #include <OpenSG/OSGGroup.h>
 #include <OpenSG/OSGImage.h>
-#include <OpenSG/OSGLineChunk.h>
+#include <OpenSG/OSGChunkMaterial.h>
 #include <OpenSG/OSGMaterialChunk.h>
-#include <OpenSG/OSGMatrix.h>
+#include <OpenSG/OSGLineChunk.h>
 #include <OpenSG/OSGPointChunk.h>
 #include <OpenSG/OSGPolygonChunk.h>
-#include <OpenSG/OSGSimpleGeometry.h>
 #include <OpenSG/OSGTwoSidedLightingChunk.h>
 #include <OpenSG/OSGTextureChunk.h>
 #include <OpenSG/OSGBlendChunk.h>
+#include <OpenSG/OSGMatrix.h>
+#include <OpenSG/OSGSimpleGeometry.h>
 #include <OpenSG/OSGGL.h>
 #include <OpenSG/OSGComponentTransform.h>
 #include <OpenSG/OSGPrimitiveIterator.h>
@@ -67,9 +68,9 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		if(osgTexCoords)
 			numTexCoords = osgTexCoords->size();
 
-		cout << "Types: " << numTypes << "\nLengths: " << numLengths << "\nIndices: " << numIndices
-			<< "\nVertices: " << numVertices << "\nNormals: " << numNormals << "\nColors: "
-			<< numColors << "\nTex coords: " << numTexCoords << endl;
+		cout << "\tTypes: " << numTypes << "\n\tLengths: " << numLengths << "\n\tIndices: " << numIndices
+			<< "\n\tVertices: " << numVertices << "\n\tNormals: " << numNormals << "\n\tColors: "
+			<< numColors << "\n\tTex coords: " << numTexCoords << "\n" << endl;
 
 		FbxMesh* mesh = FbxMesh::Create(_scene, name.c_str());
 
@@ -143,6 +144,7 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 				Color3f color = osgColors->getValue(i);
 				vertexColorElement->GetDirectArray().Add(FbxColor(color.red(), color.green(), color.blue(), 1.0));
 			}
+			addUserProperty("UseVertexColors", true);
 		}
 
 		// -- Polygons --
@@ -162,6 +164,91 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		// This and the vertex translation aligns the bounding box centre and the
 		// pivot point in Unity
 		_currentNode->LclTranslation.Set(boundingBoxCenter);
+
+		// -- Material --
+		FbxLayerElementMaterial* layerElementMaterial = mesh->CreateElementMaterial();
+		layerElementMaterial->SetMappingMode(FbxGeometryElement::eAllSame);
+		layerElementMaterial->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
+
+		FbxSurfacePhong* material = FbxSurfacePhong::Create(_scene,
+			(name + std::string("_material")).c_str());
+		material->ShadingModel.Set("Phong");
+
+		ChunkMaterialPtr osgMaterial = ChunkMaterialPtr::dcast(geo->getMaterial());
+		if(osgMaterial != NullFC)
+		{
+			MaterialChunkPtr materialChunk = MaterialChunkPtr::dcast(
+				osgMaterial->find(MaterialChunk::getClassType()));
+			if(materialChunk != NullFC)
+			{
+				// Generate primary and secondary colors.
+				Color4f ambient = materialChunk->getAmbient();
+				Color4f specular = materialChunk->getSpecular();
+				material->Emissive.Set(FbxDouble3(0.0, 0.0, 0.0));
+				material->Ambient.Set(FbxDouble3(ambient[0],
+					ambient[1], ambient[2]));
+				material->Specular.Set(FbxDouble3(specular[0],
+				specular[1], specular[2]));
+				material->Shininess.Set(materialChunk->getShininess());
+
+				// Add texture for diffuse channel
+				TextureChunkPtr textureChunk = TextureChunkPtr::dcast(
+					osgMaterial->find(TextureChunk::getClassType()));
+				if (textureChunk != NullFC)
+				{
+					ImagePtr image = textureChunk->getImage();
+					if(image != NullFC)
+					{
+						cout << "    Connecting texture ..." << endl;
+						std::string textureName = name + std::string("_vtk_texture.png");
+						image->write(textureName.c_str());
+
+						FbxFileTexture* fbxTexture = FbxFileTexture::Create(_scene, "DiffuseTexture");
+						fbxTexture->SetTextureUse(FbxTexture::eStandard);
+						fbxTexture->SetMappingType(FbxTexture::eUV);
+						fbxTexture->SetMaterialUse(FbxFileTexture::eModelMaterial);
+						//fbxTexture->SetAlphaSource (FbxTexture::eBlack);
+						fbxTexture->SetFileName(textureName.c_str());
+
+						material->Diffuse.ConnectSrcObject(fbxTexture);
+					}
+				}
+				else
+				{
+					Color4f diffuse = materialChunk->getDiffuse();
+					cout << "Diffuse: " << diffuse << endl;
+					material->Diffuse.Set(FbxDouble3(diffuse[0],
+						diffuse[1], diffuse[2]));
+				}
+			}
+
+			// Two-Sided
+			TwoSidedLightingChunkPtr twosidedChunk = TwoSidedLightingChunkPtr::dcast(
+				osgMaterial->find(TwoSidedLightingChunk::getClassType()));
+			if(twosidedChunk != NullFC)
+				addUserProperty("TwoSidedLighting", true);
+
+			// Wireframe
+			PolygonChunkPtr polygonChunk = PolygonChunkPtr::dcast(
+				osgMaterial->find(PolygonChunk::getClassType()));
+			if(polygonChunk != NullFC)
+			{
+				if(polygonChunk->getFrontMode() == GL_LINE)
+					addUserProperty("Wireframe-Line", true);
+				else if (polygonChunk->getFrontMode() == GL_POINT)
+					addUserProperty("Wireframe-Point", true);
+			}
+
+			//TODO material->TransparencyFactor.Set(opacity);
+		}
+		_currentNode->AddMaterial(material);
+
+		// -- Visibility -- (ignored by Unity)
+		bool visible = node->getActive();
+		_currentNode->Show.Set(visible);
+		_currentNode->Visibility.Set((double)visible);
+		addUserProperty("Visible", visible);
+
 	}
 	else if (node->getCore()->getType().isDerivedFrom(Group::getClassType()))
 	{
@@ -226,7 +313,6 @@ bool OsgFbxConverter::createTransformNode(NodePtr node)
 		string name("Transform");
 		if(getName(node))
 			name = getName(node);
-		cout << "Name: " << name << endl;
 		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
@@ -254,4 +340,11 @@ bool OsgFbxConverter::checkVredIgnoreNodes(NodePtr node)
 		name.find("Perspective") != string::npos ||
 		name.find("Side") != string::npos ||
 		name.find("Top") != string::npos );
+}
+
+void OsgFbxConverter::addUserProperty(const std::string name, const bool value)
+{
+	FbxProperty property = FbxProperty::Create(_currentNode, FbxBoolDT, name.c_str(), "");
+	property.ModifyFlag(FbxPropertyAttr::eUserDefined, true);
+	property.Set(value);
 }

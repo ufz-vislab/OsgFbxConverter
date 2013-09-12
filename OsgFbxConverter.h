@@ -22,7 +22,6 @@ public:
 	virtual ~OsgFbxConverter();
 
 	bool convert(std::string name = "FBXObject");
-	FBXSDK_NAMESPACE::FbxNode* getNode() const;
 
 	void addUserProperty(const std::string name, const bool value);
 	void addUserProperty(const std::string name, const float value);
