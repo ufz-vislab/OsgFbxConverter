@@ -20,11 +20,13 @@
 #include <OpenSG/OSGTriangleIterator.h>
 #include <fbxsdk.h>
 
+#include <string>
+
 OSG_USING_NAMESPACE
 using namespace std;
 
 OsgFbxConverter::OsgFbxConverter(NodePtr node, FbxScene* scene)
-: _osgRoot(node), _scene(scene), _currentTransformNode(NULL)
+: _osgRoot(node), _scene(scene), _currentTransformNode(NULL), geometryCounter(0)
 {
 	_currentNode = _scene->GetRootNode();
 }
@@ -42,6 +44,7 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		string name("Geometry");
 		if(getName(node))
 			name = getName(node);
+		name.append(string("-") + to_string(geometryCounter));
 		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
@@ -171,7 +174,7 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		layerElementMaterial->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
 
 		FbxSurfacePhong* material = FbxSurfacePhong::Create(_scene,
-			(name + std::string("_material")).c_str());
+			(name + string("_material")).c_str());
 		material->ShadingModel.Set("Phong");
 
 		ChunkMaterialPtr osgMaterial = ChunkMaterialPtr::dcast(geo->getMaterial());
@@ -248,6 +251,8 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		_currentNode->Show.Set(visible);
 		_currentNode->Visibility.Set((double)visible);
 		addUserProperty("Visible", visible);
+
+		geometryCounter++;
 
 	}
 	else if (node->getCore()->getType().isDerivedFrom(Group::getClassType()))
