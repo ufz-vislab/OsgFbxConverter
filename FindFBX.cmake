@@ -14,7 +14,7 @@
 #               The root directory of the FBX SDK install
 
 if(NOT FBX_VERSION)
-    set(FBX_VERSION 2014.2)
+    set(FBX_VERSION 2014.1)
 endif()
 string(REGEX REPLACE "^([0-9]+).*$" "\\1" FBX_VERSION_MAJOR "${FBX_VERSION}")
 string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*$" "\\1" FBX_VERSION_MINOR  "${FBX_VERSION}")
@@ -45,11 +45,7 @@ function(_fbx_append_debugs _endvar _library)
     set(${_endvar} ${_output} PARENT_SCOPE)
 endfunction()
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(fbx_compiler clang)
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(fbx_compiler gcc4)
-endif()
 
 function(_fbx_find_library _name _lib _suffix)
     find_library(${_name}

@@ -20,7 +20,9 @@
 #include <OpenSG/OSGTriangleIterator.h>
 #include <fbxsdk.h>
 
+#include <sstream>
 #include <string>
+#include <iostream>
 
 OSG_USING_NAMESPACE
 using namespace std;
@@ -44,7 +46,9 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		string name("Geometry");
 		if(getName(node))
 			name = getName(node);
-		name.append(string("-") + to_string(geometryCounter));
+		std::ostringstream ss;
+    		ss << geometryCounter;
+		name.append(string("-") + ss.str());
 		FbxNode* newNode = FbxNode::Create(_scene, name.c_str());
 		_currentNode->AddChild(newNode);
 		_currentNode = newNode;
