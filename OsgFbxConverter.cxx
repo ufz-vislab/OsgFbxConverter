@@ -65,7 +65,6 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 
 		unsigned numTypes = osgTypes->size();
 		unsigned numLengths = osgLengths->size();
-		unsigned numIndices = osgIndices->size();
 		unsigned numVertices = osgVertices->size();
 		unsigned numNormals = osgNormals->size();
 		unsigned numColors = 0;
@@ -75,8 +74,7 @@ Action::ResultE OsgFbxConverter::onEntry(NodePtr& node)
 		if(osgTexCoords)
 			numTexCoords = osgTexCoords->size();
 
-		cout << "\tTypes: " << numTypes << "\n\tLengths: " << numLengths << "\n\tIndices: " << numIndices
-			<< "\n\tVertices: " << numVertices << "\n\tNormals: " << numNormals << "\n\tColors: "
+		cout << "\tTypes: " << numTypes << "\n\tLengths: " << numLengths << "\n\tVertices: " << numVertices << "\n\tNormals: " << numNormals << "\n\tColors: "
 			<< numColors << "\n\tTex coords: " << numTexCoords << "\n" << endl;
 
 		FbxMesh* mesh = FbxMesh::Create(_scene, name.c_str());
@@ -354,6 +352,6 @@ bool OsgFbxConverter::checkVredIgnoreNodes(NodePtr node)
 void OsgFbxConverter::addUserProperty(const std::string name, const bool value)
 {
 	FbxProperty property = FbxProperty::Create(_currentNode, FbxBoolDT, name.c_str(), "");
-	property.ModifyFlag(FbxPropertyAttr::eUserDefined, true);
+	property.ModifyFlag(FbxPropertyAttr::eUser, true);
 	property.Set(value);
 }

@@ -97,7 +97,7 @@ bool SaveScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename,
     if(lExporter->Initialize(pFilename, pFileFormat, pManager->GetIOSettings()) == false)
     {
         FBXSDK_printf("Call to FbxExporter::Initialize() failed.\n");
-        FBXSDK_printf("Error returned: %s\n\n", lExporter->GetStatus().GetErrorString());
+        FBXSDK_printf("Error returned: %s\n\n", lExporter->GetLastErrorString());
         return false;
     }
 
@@ -133,14 +133,14 @@ bool LoadScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename)
 
     if( !lImportStatus )
     {
-        FbxString error = lImporter->GetStatus().GetErrorString();
         FBXSDK_printf("Call to FbxImporter::Initialize() failed.\n");
-        FBXSDK_printf("Error returned: %s\n\n", error.Buffer());
+        FBXSDK_printf("Error returned: %s\n\n", lImporter->GetLastErrorString());
 
-        if (lImporter->GetStatus().GetCode() == FbxStatus::eInvalidFileVersion)
+        if (lImporter->GetLastErrorID() == FbxIOBase::eFileVersionNotSupportedYet ||
+            lImporter->GetLastErrorID() == FbxIOBase::eFileVersionNotSupportedAnymore)
         {
-            FBXSDK_printf("FBX file format version for this FBX SDK is %d.%d.%d\n", lSDKMajor, lSDKMinor, lSDKRevision);
-            FBXSDK_printf("FBX file format version for file '%s' is %d.%d.%d\n\n", pFilename, lFileMajor, lFileMinor, lFileRevision);
+            FBXSDK_printf("FBX version number for this FBX SDK is %d.%d.%d\n", lSDKMajor, lSDKMinor, lSDKRevision);
+            FBXSDK_printf("FBX version number for file %s is %d.%d.%d\n\n", pFilename, lFileMajor, lFileMinor, lFileRevision);
         }
 
         return false;
@@ -195,7 +195,7 @@ bool LoadScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename)
     // Import the scene.
     lStatus = lImporter->Import(pScene);
 
-    if(lStatus == false && lImporter->GetStatus().GetCode() == FbxStatus::ePasswordError)
+    if(lStatus == false && lImporter->GetLastErrorID() == FbxIOBase::ePasswordError)
     {
         FBXSDK_printf("Please enter password: ");
 
@@ -212,7 +212,7 @@ bool LoadScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename)
 
         lStatus = lImporter->Import(pScene);
 
-        if(lStatus == false && lImporter->GetStatus().GetCode() == FbxStatus::ePasswordError)
+        if(lStatus == false && lImporter->GetLastErrorID() == FbxIOBase::ePasswordError)
         {
             FBXSDK_printf("\nPassword is wrong, import aborted.\n");
         }

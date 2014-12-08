@@ -14,7 +14,7 @@
 #               The root directory of the FBX SDK install
 
 if(NOT FBX_VERSION)
-    set(FBX_VERSION 2014.1)
+    set(FBX_VERSION 2013.3)
 endif()
 string(REGEX REPLACE "^([0-9]+).*$" "\\1" FBX_VERSION_MAJOR "${FBX_VERSION}")
 string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*$" "\\1" FBX_VERSION_MINOR  "${FBX_VERSION}")
@@ -63,6 +63,10 @@ find_path(FBX_INCLUDE_DIR fbxsdk.h
 mark_as_advanced(FBX_INCLUDE_DIR)
 
 if(WIN32)
+    if(${FBX_VERSION} VERSION_LESS 2014)
+        _fbx_find_library(FBX_LIBRARY            fbxsdk-${FBX_VERSION}-md "")
+        _fbx_find_library(FBX_LIBRARY_DEBUG      fbxsdk-${FBX_VERSION}-mdd "")
+    endif()
     _fbx_find_library(FBX_LIBRARY            libfbxsdk-md release)
     _fbx_find_library(FBX_LIBRARY_DEBUG      libfbxsdk-md debug)
 elseif(APPLE)
