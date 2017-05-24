@@ -1,6 +1,7 @@
 #ifndef OSGFBXCONVERTER_H
 #define OSGFBXCONVERTER_H
 
+#include <fbxsdk.h>
 #include <fbxsdk/fbxsdk_version.h>
 #include <OpenSG/OSGNode.h>
 #include <OpenSG/OSGRefPtr.h>
@@ -49,5 +50,11 @@ private:
 	FBXSDK_NAMESPACE::FbxScene* _scene;
 	std::string _name;
 };
+
+#if FBX_VERSION_MAJOR>2014
+FBXSDK_NAMESPACE::FbxPropertyFlags::EFlags getUserPropertyFlag();
+#else
+FBXSDK_NAMESPACE::FbxPropertyAttr::EFlags getUserPropertyFlag();
+#endif
 
 #endif // OSGFBXCONVERTER_H

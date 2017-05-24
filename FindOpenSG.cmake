@@ -135,7 +135,7 @@ IF(__OpenSG_IN_CACHE)
 
 ELSE(__OpenSG_IN_CACHE)
 	# need to search for libs
-	  if (WIN32)
+	if (WIN32)
 		# Visual Studio x64
 		SET( __OpenSG_INCLUDE_SEARCH_DIRS
 		$ENV{OPENSG_ROOT}/include
@@ -147,18 +147,18 @@ ELSE(__OpenSG_IN_CACHE)
 		${OPENSG_ROOT}/lib
 		  ${LIBRARIES_DIR}/opensg_x64/lib
 		  ${CMAKE_SOURCE_DIR}/../opensg_x64/lib )
-	  else ()
+	else ()
 		# Linux or Mac
 		SET( __OpenSG_INCLUDE_SEARCH_DIRS
-		  "/usr/local"
-		  "/usr/local/include"
-		  "/opt/boxen/homebrew"
-		  "/opt/boxen/homebrew/include" )
+			"/usr/local"
+			"/usr/local/include"
+			"/usr/local/opt/open-sg/include"
+		)
 		SET( __OpenSG_LIBRARIES_SEARCH_DIRS
-		  "/usr/local"
-		  "/usr/local/lib"
-		  "/opt/boxen/homebrew"
-		 "/opt/boxen/homebrew/lib" )
+		"/usr/local"
+		"/usr/local/lib"
+		"/usr/local/opt/open-sg/lib64"
+		)
 	endif()
 
 	# handle input variable OPENSG_INCLUDE_DIR

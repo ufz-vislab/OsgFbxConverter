@@ -1,28 +1,27 @@
 #include "OsgFbxConverter.h"
 
-#include <OpenSG/OSGSimpleAttachments.h>
+#include <OpenSG/OSGBlendChunk.h>
+#include <OpenSG/OSGChunkMaterial.h>
+#include <OpenSG/OSGComponentTransform.h>
 #include <OpenSG/OSGGeoFunctions.h>
+#include <OpenSG/OSGGL.h>
 #include <OpenSG/OSGGroup.h>
 #include <OpenSG/OSGImage.h>
-#include <OpenSG/OSGChunkMaterial.h>
-#include <OpenSG/OSGMaterialChunk.h>
 #include <OpenSG/OSGLineChunk.h>
+#include <OpenSG/OSGMaterialChunk.h>
+#include <OpenSG/OSGMatrix.h>
 #include <OpenSG/OSGPointChunk.h>
 #include <OpenSG/OSGPolygonChunk.h>
-#include <OpenSG/OSGTwoSidedLightingChunk.h>
-#include <OpenSG/OSGTextureChunk.h>
-#include <OpenSG/OSGBlendChunk.h>
-#include <OpenSG/OSGMatrix.h>
-#include <OpenSG/OSGSimpleGeometry.h>
-#include <OpenSG/OSGGL.h>
-#include <OpenSG/OSGComponentTransform.h>
 #include <OpenSG/OSGPrimitiveIterator.h>
+#include <OpenSG/OSGSimpleAttachments.h>
+#include <OpenSG/OSGSimpleGeometry.h>
+#include <OpenSG/OSGTextureChunk.h>
 #include <OpenSG/OSGTriangleIterator.h>
-#include <fbxsdk.h>
+#include <OpenSG/OSGTwoSidedLightingChunk.h>
 
+#include <iostream>
 #include <sstream>
 #include <string>
-#include <iostream>
 
 OSG_USING_NAMESPACE
 using namespace std;
@@ -352,6 +351,18 @@ bool OsgFbxConverter::checkVredIgnoreNodes(NodePtr node)
 void OsgFbxConverter::addUserProperty(const std::string name, const bool value)
 {
 	FbxProperty property = FbxProperty::Create(_currentNode, FbxBoolDT, name.c_str(), "");
-	property.ModifyFlag(FbxPropertyAttr::eUser, true);
+	property.ModifyFlag(getUserPropertyFlag(), true);
 	property.Set(value);
 }
+
+#if FBX_VERSION_MAJOR>2014
+FBXSDK_NAMESPACE::FbxPropertyFlags::EFlags getUserPropertyFlag()
+{
+	return FBXSDK_NAMESPACE::FbxPropertyFlags::eUserDefined;
+}
+#else
+FBXSDK_NAMESPACE::FbxPropertyAttr::EFlags getUserPropertyFlag()
+{
+	return FBXSDK_NAMESPACE::FbxPropertyAttr::eUserDefined;
+}
+#endif

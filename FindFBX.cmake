@@ -1,4 +1,4 @@
-# Locate the FBX SDK (version 2013.1 only atm)
+# Locate the FBX SDK
 #
 # Defines the following variables:
 #
@@ -14,7 +14,7 @@
 #               The root directory of the FBX SDK install
 
 if(NOT FBX_VERSION)
-    set(FBX_VERSION 2013.3)
+    set(FBX_VERSION 2016.1.2)
 endif()
 string(REGEX REPLACE "^([0-9]+).*$" "\\1" FBX_VERSION_MAJOR "${FBX_VERSION}")
 string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*$" "\\1" FBX_VERSION_MINOR  "${FBX_VERSION}")
@@ -45,13 +45,29 @@ function(_fbx_append_debugs _endvar _library)
     set(${_endvar} ${_output} PARENT_SCOPE)
 endfunction()
 
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    set(fbx_compiler clang)
+elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     set(fbx_compiler gcc4)
+endif()
 
 function(_fbx_find_library _name _lib _suffix)
+    if(MSVC12)
+        set(VS_PREFIX vs2013)
+    endif()
+    if(MSVC11)
+        set(VS_PREFIX vs2012)
+    endif()
+    if(MSVC10)
+        set(VS_PREFIX vs2010)
+    endif()
+    if(MSVC90)
+        set(VS_PREFIX vs2008)
+    endif()
     find_library(${_name}
         NAMES ${_lib}
         HINTS ${FBX_SEARCH_LOCATIONS}
-        PATH_SUFFIXES lib/${fbx_compiler}/ub/${_suffix} lib/vs2013/x64/${_suffix} lib/vs2012/x64/${_suffix} lib/vs2010/x64/${_suffix} lib/vs2008/x64/${_suffix} lib/vs2005/x64/${_suffix}
+        PATH_SUFFIXES lib/${fbx_compiler}/ub/${_suffix} lib/${fbx_compiler}/${_suffix} lib/${VS_PREFIX}/x64/${_suffix}
     )
     mark_as_advanced(${_name})
 endfunction()
@@ -63,15 +79,11 @@ find_path(FBX_INCLUDE_DIR fbxsdk.h
 mark_as_advanced(FBX_INCLUDE_DIR)
 
 if(WIN32)
-    if(${FBX_VERSION} VERSION_LESS 2014)
-        _fbx_find_library(FBX_LIBRARY            fbxsdk-${FBX_VERSION}-md "")
-        _fbx_find_library(FBX_LIBRARY_DEBUG      fbxsdk-${FBX_VERSION}-mdd "")
-    endif()
     _fbx_find_library(FBX_LIBRARY            libfbxsdk-md release)
     _fbx_find_library(FBX_LIBRARY_DEBUG      libfbxsdk-md debug)
 elseif(APPLE)
     find_library(CARBON NAMES Carbon)
-    find_library(SYSTEM_CONFIGURATION NAMES SystemConfiguration)
+    #find_library(SYSTEM_CONFIGURATION NAMES SystemConfiguration)
     _fbx_find_library(FBX_LIBRARY            libfbxsdk.a release)
     _fbx_find_library(FBX_LIBRARY_DEBUG      libfbxsdk.a debug)
 endif()
