@@ -25,10 +25,10 @@ public:
 	bool convert(std::string name = "FBXObject");
 
 	void addUserProperty(const std::string name, const bool value);
-	void addUserProperty(const std::string name, const float value);
-	void addUserProperty(const std::string name, const int value);
-	void addUserProperty(const std::string name, const std::string value);
-	void addUserProperty(const std::string name, const FBXSDK_NAMESPACE::FbxColor value);
+	// void addUserProperty(const std::string name, const float value);
+	// void addUserProperty(const std::string name, const int value);
+	// void addUserProperty(const std::string name, const std::string value);
+	// void addUserProperty(const std::string name, const FBXSDK_NAMESPACE::FbxColor value);
 
 protected:
 	OSG::Action::ResultE onEntry(OSG::NodePtr& node);
@@ -45,10 +45,7 @@ private:
 
 	//For the translation to OpenSG
 	OSG::RefPtr<OSG::NodePtr> _osgRoot;
-	OSG::RefPtr<OSG::TransformPtr> _osgTransform;
-	FBXSDK_NAMESPACE::FbxNode* _node;
 	FBXSDK_NAMESPACE::FbxScene* _scene;
-	std::string _name;
 };
 
 #if FBX_VERSION_MAJOR>2014

@@ -2,26 +2,17 @@
 
 #include <OpenSG/OSGBlendChunk.h>
 #include <OpenSG/OSGChunkMaterial.h>
-#include <OpenSG/OSGComponentTransform.h>
 #include <OpenSG/OSGGeoFunctions.h>
-#include <OpenSG/OSGGL.h>
-#include <OpenSG/OSGGroup.h>
 #include <OpenSG/OSGImage.h>
-#include <OpenSG/OSGLineChunk.h>
 #include <OpenSG/OSGMaterialChunk.h>
-#include <OpenSG/OSGMatrix.h>
-#include <OpenSG/OSGPointChunk.h>
 #include <OpenSG/OSGPolygonChunk.h>
 #include <OpenSG/OSGPrimitiveIterator.h>
 #include <OpenSG/OSGSimpleAttachments.h>
-#include <OpenSG/OSGSimpleGeometry.h>
 #include <OpenSG/OSGTextureChunk.h>
 #include <OpenSG/OSGTriangleIterator.h>
 #include <OpenSG/OSGTwoSidedLightingChunk.h>
 
-#include <iostream>
 #include <sstream>
-#include <string>
 
 OSG_USING_NAMESPACE
 using namespace std;

@@ -3,13 +3,7 @@
 #include "Common.h"
 
 #include "OsgFbxConverter.h"
-#include <OpenSG/OSGNode.h>
 #include <OpenSG/OSGSceneFileHandler.h>
-
-#include <iostream>
-#include <vector>
-
-#define SAMPLE_FILENAME "Sample.fbx"
 
 using namespace std;
 
@@ -50,18 +44,8 @@ std::string extractBaseNameWithoutExtension(std::string const& pathname)
     return dropFileExtension(basename);
 }
 
-std::string getFileExtension(const std::string &path)
-{
-    const std::string str = extractBaseName(path);
-    const size_t p = findLastDot(str);
-    if (p == std::string::npos)
-        return std::string();
-    return str.substr(p + 1);
-}
-
-// No arguments: batch convert all vt* files
-// switch argument: batch convert all vt* files into one osb file with a switch
-// file argument: convert only the specified file
+// First argument: output path
+// Second argument: file to convert
 int main (int argc, char **argv)
 {
     OSG::osgInit(argc,argv);
@@ -69,45 +53,37 @@ int main (int argc, char **argv)
     // Init fbx
     FbxManager* lSdkManager = NULL;
     FbxScene* lScene = NULL;
-    bool lResult;
+    bool lResult = false;
     InitializeSdkObjects(lSdkManager, lScene);
 
-    string outputDirectory = "";
-    vector<string> filenames;
-    if (argc > 2)
+    string outputDirectory = string(argv[1]);
+    string filename = string(argv[2]);
+
+    std::cout << "Converting file " << filename << std::endl;
+    OSG::NodePtr node = OSG::SceneFileHandler::the().read(filename.c_str());
+    if (node == OSG::NullFC)
     {
-        outputDirectory = string(argv[1]);
-        filenames.push_back(string(argv[2]));
+        std::cout
+            << "It was not possible to load all needed models from file"
+            << std::endl;
+        return 1;
     }
 
-    for (vector<string>::const_iterator it = filenames.begin(); it != filenames.end(); ++it)
-    {
-        string filename(*it);
-        OSG::NodePtr node = OSG::SceneFileHandler::the().read(filename.c_str());
-        if (node == OSG::NullFC)
-        {
-            std::cout
-                << "It was not possible to load all needed models from file"
-                << std::endl;
-            continue;
-        }
+    OsgFbxConverter* converter = new OsgFbxConverter(node, lScene);
+    converter->convert();
 
-        OsgFbxConverter* converter = new OsgFbxConverter(node, lScene);
-        converter->convert();
+    // Save the scene.
+    string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
+    filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
+    cout << "Saving to " << filename << " ..." << endl;
 
-        // Save the scene.
-        string filenameWithoutPath = extractBaseNameWithoutExtension(filename);
-        filename = outputDirectory.append(filenameWithoutPath).append(".fbx");
-        cout << "Saving to " << filename << " ..." << endl;
+    // Use the binary format with embedded media.
+    int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
+    lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
 
-        // Use the binary format with embedded media.
-        int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription("FBX 6.0 binary (*.fbx)");
-        lResult = SaveScene(lSdkManager, lScene, filename.c_str(), lFormat, true);
+    delete converter;
 
-        delete converter;
-    }
-
-    if(lResult == false)
+    if(!lResult)
     {
         FBXSDK_printf("\n\nAn error occurred while saving the scene...\n");
         DestroySdkObjects(lSdkManager, true);
